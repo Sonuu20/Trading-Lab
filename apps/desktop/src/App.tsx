@@ -1,13 +1,53 @@
-import { createSignal } from 'solid-js'
-import solidLogo from './assets/solid.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
-import './App.css'
-import { Button } from '@trading-lab/ui'
-
+import { createSignal } from "solid-js";
+import solidLogo from "./assets/solid.svg";
+import viteLogo from "./assets/vite.svg";
+import heroImg from "./assets/hero.png";
+import "./App.css";
+import { Button } from "@trading-lab/ui";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 
 function App() {
-  const [count, setCount] = createSignal(0)
+  const [count, setCount] = createSignal(0);
+
+  async function testRust() {
+    const msg = await invoke("greet", {
+      name: "Batman",
+    });
+
+    console.log(msg);
+  }
+
+  async function testAdd() {
+    const result = await invoke("add", {
+      a: 10,
+      b: 25,
+    });
+
+    console.log(result);
+  }
+
+  async function startStream() {
+    await listen("tick", (event) => {
+      console.log("Tick:", event.payload);
+    });
+
+    await invoke("start_ticks");
+  }
+
+  async function testCounter() {
+    const v = await invoke("increment_counter");
+
+    console.log(v);
+  }
+
+  async function testBacktest() {
+    console.log("Starting...");
+
+    const result = await invoke("run_backtest");
+
+    console.log(result);
+  }
 
   return (
     <>
@@ -19,7 +59,11 @@ function App() {
         </div>
         <div>
           <h1>Get started</h1>
-          <Button>Hii</Button>
+          <button onClick={testRust}>Test Rust</button>
+          <button onClick={testAdd}>Test Add</button>
+          <button onClick={startStream}>Start Ticks</button>
+          <button onClick={testCounter}>Test counter</button>
+          <button onClick={testBacktest}>Test backtest</button>
           <p>
             Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
           </p>
@@ -99,7 +143,7 @@ function App() {
       <div class="ticks"></div>
       <section id="spacer"></section>
     </>
-  )
+  );
 }
 
-export default App
+export default App;
